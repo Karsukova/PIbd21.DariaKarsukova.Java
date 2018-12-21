@@ -2,27 +2,25 @@ package laba1;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import laba1.Airplane;
-import laba1.FighterPlane;
-import laba1.JPanelDraw;
-import laba1.JPanelHangar;
-import laba1.MultiLevelHangar;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public class FormHangar extends JFrame {
 
+    JFrame frame;
     private JPanel contentPane;
     private JTextField textField;
+    private static JList list;
 
     private IFighter transport;
     private MultiLevelHangar hangar;
+
     private final int countLevel = 5;
+
+    private FormPlaneConfig select;
     /**
      * Launch the application.
      */
@@ -30,8 +28,8 @@ public class FormHangar extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                   FormHangar frame = new FormHangar();
-                   frame.setVisible(true);
+                	FormHangar frame = new FormHangar();
+                    frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -42,8 +40,20 @@ public class FormHangar extends JFrame {
     /**
      * Create the frame.
      */
+
+    public void getTrain() {
+        select = new FormPlaneConfig(frame);
+        if (select.res()) {
+        	IFighter plane = select.plane;
+            int place = hangar.getAt(list.getSelectedIndex()).addTransport(plane);
+            if (place < 0) {
+                JOptionPane.showMessageDialog(null, "No free place");
+            }
+        }
+    }
+
     public FormHangar() {
-    	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 900, 458);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -59,7 +69,7 @@ public class FormHangar extends JFrame {
             listModel.addElement("\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + Integer.toString(i + 1));
         }
 
-        JList list = new JList(listModel);
+        list = new JList(listModel);
         list.setBounds(648, 11, 206, 107);
         contentPane.add(list);
         list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
@@ -78,38 +88,15 @@ public class FormHangar extends JFrame {
         panelPlane.setHangar(hangar);
         panelPlane.setList(list);
 
-        JButton buttonSetFighterPlane = new JButton("Ñîçäàòü èñòðåáèòåëü");
-        buttonSetFighterPlane.addActionListener(new ActionListener() {
+        JButton buttonAddPlane = new JButton("Äîáàâèòü ñàìîë¸ò");
+        buttonAddPlane.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                Color firstColor = JColorChooser.showDialog(null, "Choose a Color", Color.WHITE);
-                Color secondColor = JColorChooser.showDialog(null, "Choose a Color", Color.WHITE);
-                transport = new FighterPlane(100 , 1000 , firstColor, secondColor, true, true);
-                int place = hangar.getAt(list.getSelectedIndex()).addTransport(transport);
-                if (place == -1) {
-                    JOptionPane.showMessageDialog(null, "ÐÐµÑ‚ ÑÐ²Ð¾Ð±Ð¾Ð´Ð½Ñ‹Ñ… Ð¼ÐµÑÑ‚");
-                }
-
+                getTrain();
                 panelPlane.repaint();
             }
         });
-        buttonSetFighterPlane.setBounds(648, 181, 206, 40);
-        contentPane.add(buttonSetFighterPlane);
-
-        JButton buttonSetAirplane = new JButton("Ñîçäàòü ñàìîë¸ò");
-        buttonSetAirplane.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                Color firstColor = JColorChooser.showDialog(null, "Choose a Color", Color.WHITE);
-                transport = new Airplane(100, 1000 , firstColor);
-
-                int place = hangar.getAt(list.getSelectedIndex()).addTransport(transport);
-                if (place == -1) {
-                    JOptionPane.showMessageDialog(null, "ÐÐµÑ‚ ÑÐ²Ð¾Ð±Ð¾Ð´Ð½Ñ‹Ñ… Ð¼ÐµÑÑ‚");
-                }
-                panelPlane.repaint();
-            }
-        });
-        buttonSetAirplane.setBounds(648, 130, 206, 40);
-        contentPane.add(buttonSetAirplane);
+        buttonAddPlane.setBounds(648, 130, 206, 70);
+        contentPane.add(buttonAddPlane);
 
         JPanel panelGroupElements = new JPanel();
         panelGroupElements.setBounds(648, 232, 206, 177);
