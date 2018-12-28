@@ -7,10 +7,10 @@ import laba1.MultiLevelHangar;
 import java.awt.*;
 
 public class JPanelHangar extends JPanel {
-	private MultiLevelHangar hangar;
+	private Hangar<IFighter> hangar;
 	private JList list;
 
-    public void setHangar(MultiLevelHangar hangar)
+    public void setHangar(Hangar<IFighter> hangar)
     {
         this.hangar = hangar;
     }
@@ -23,15 +23,8 @@ public class JPanelHangar extends JPanel {
     public void paint(Graphics g)
     {
         super.paint(g);
-        try {
-            if (hangar != null) {
-                if (list.getSelectedIndex() != -1 ) {
-                    hangar.getAt(list.getSelectedIndex()).Draw(g);
-                }
-            }
-        }
-        catch(Exception ex){
-
+        if (hangar != null) {
+            hangar.Draw(g);
         }
     }
 }
