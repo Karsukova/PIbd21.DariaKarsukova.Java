@@ -1,36 +1,36 @@
 package laba1;
-
-import java.util.ArrayList;
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.*;
+import java.io.*;
+import java.util.*;
 
 public class Hangar<T extends IFighter> {
-    ArrayList<T> _places;
-
+    HashMap<Integer, T> _places;
+    private int _maxCount;
     private int _pictureWidth;
-
     private int _pictureHeight;
-
     private int _placeSizeWidth = 210;
-
     private int _placeSizeHeight = 80;
 
-    public Hangar(int size, int pictureWidth, int pictureHeight) {
-       _places = new ArrayList<T>(size);
-        this._pictureWidth = pictureWidth;
-        this._pictureHeight = pictureHeight;
-        for (int i = 0; i < size; i++) {
-            _places.add(null);
-        }
+    public Hangar(int size, int _pictureWidth, int _pictureHeight) {
+        _maxCount = size;
+        this._places = new HashMap<Integer, T>();
+        this._pictureWidth = _pictureWidth;
+        this._pictureHeight = _pictureHeight;
+    }
+
+    private boolean checkFreePlace(int index) {
+        return !_places.containsKey(index);
     }
 
     public int addTransport(T transport) {
-        for (int i = 0; i < _places.size(); i++) {
+        if (_places.size() == _maxCount) {
+            return -1;
+        }
+        for (int i = 0; i < _maxCount; i++) {
             if (checkFreePlace(i)) {
-                _places.add(i, transport);
-                _places.get(i).setPosition(5 + i / 5 * _placeSizeWidth + 5, i
-                        % 5 * _placeSizeHeight + 15, _pictureWidth, _pictureHeight);
-
+                _places.put(i, transport);
+                _places.get(i).setPosition(10 + i / 5 * _placeSizeWidth + 5,
+                        i % 5 * _placeSizeHeight + 15, _pictureWidth, _pictureHeight);
                 return i;
             }
         }
@@ -38,36 +38,28 @@ public class Hangar<T extends IFighter> {
     }
 
     public T removeTransport(int index) {
-        if (index < 0 || index > _places.size()) {
-            return null;
-        }
         if (!checkFreePlace(index)) {
-            T plane = _places.get(index);
-            _places.set(index, null);
-            return plane;
+            T pl = _places.get(index);
+            _places.remove(index);
+            return pl;
         }
         return null;
     }
 
-    private boolean checkFreePlace(int index) {
-        return _places.get(index) == null;
-    }
-
     public void Draw(Graphics g) {
         DrawMarking(g);
-       for (int i = 0; i < _places.size(); i++) {
-            if (!checkFreePlace(i)) {
-                _places.get(i).DrawFighter(g);
-            }
+        for (T pl : _places.values()) {
+            pl.DrawFighter(g);
+
         }
     }
 
     private  void DrawMarking(Graphics g)
     {
         g.setColor(Color.BLACK);
-        g.drawRect(0, 0, (_places.size() / 5) * _placeSizeWidth, 480);
+        g.drawRect(0, 0, (_maxCount / 5) * _placeSizeWidth, 480);
 
-        for (int i = 0; i < _places.size() / 5; i++)
+        for (int i = 0; i < _maxCount / 5; i++)
         {
             for (int j = 0; j < 6; ++j)
             {
@@ -77,5 +69,17 @@ public class Hangar<T extends IFighter> {
             g.drawLine(i * _placeSizeWidth, 0, i * _placeSizeWidth, 400);
         }
     }
+    public T getTrasport(int ind) {
+        if (_places.containsKey(ind)) {
+            return _places.get(ind);
+        }
+        return null;
+    }
 
+    public void setTrasport(int ind, T t) {
+        if (checkFreePlace(ind)) {
+            _places.put(ind, t);
+            _places.get(ind).setPosition(10 + ind / 5 * _placeSizeWidth + 5, ind % 5 * _placeSizeHeight + 15, _pictureWidth, _pictureHeight);
+        }
+    }
 }
