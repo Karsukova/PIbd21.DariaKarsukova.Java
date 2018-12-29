@@ -1,11 +1,18 @@
 package laba1;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
  class FormHangar extends JFrame {
      private MultiLevelHangar hangar;
@@ -15,14 +22,19 @@ import java.io.*;
      private static JList list;
      private FormPlaneConfig select;
      private IFighter transport;
+     private Logger logger;
 
      public void getPlane() {
          select = new FormPlaneConfig(frame);
          if (select.res()) {
+        	 try {
              IFighter pl = select.plane;
              int place = hangar.get(list.getSelectedIndex()).addTransport(pl);
-             if (place < 0) {
-                 JOptionPane.showMessageDialog(null, "No free place");
+             logger.info("Добавлен самолет "+pl.toString()+" на место "+place);
+        	 }
+        	 catch(HangarOverflowException ex){
+                 ex.printStackTrace();
+                 JOptionPane.showMessageDialog(null,"Ангар заполнен!");
              }
          }
      }
@@ -39,7 +51,16 @@ import java.io.*;
          });
      }
 
-     FormHangar() {
+    public FormHangar() {
+    	logger = Logger.getLogger(FormHangar.class.getName());
+        try {
+            FileHandler fh = new FileHandler("C:\\Users\\Дарья\\Documents\\logger.txt");
+            logger.addHandler(fh);
+            SimpleFormatter formatter = new SimpleFormatter();
+            fh.setFormatter(formatter);
+        }catch(IOException e){
+            e.printStackTrace();
+        }
         JFrame frame = new JFrame();
         frame.setBounds(100, 100, 815, 510);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -71,16 +92,11 @@ import java.io.*;
              panelHangar.repaint();
          });
 
-        JLabel label = new JLabel("Забрать");
-        label.setBounds(10, 11, 72, 14);
-         panelTakePlane.add(label);
 
-        JLabel lblNewLabel = new JLabel("самолет");
-        lblNewLabel.setBounds(10, 27, 93, 14);
-         panelTakePlane.add(lblNewLabel);
+        
 
         JLabel label_1 = new JLabel("Место:");
-        label_1.setBounds(10, 55, 46, 14);
+        label_1.setBounds(10, 55, 106, 14);
          panelTakePlane.add(label_1);
 
         JTextField textField = new JTextField();
@@ -105,35 +121,36 @@ import java.io.*;
          newMenu.add(loadFileItem);
 
          JPanelDraw panelPlane = new JPanelDraw();
-         panelPlane.setBounds(10, 117, 140, 120);
+         panelPlane.setBounds(30, 117, 190, 120);
          panelTakePlane.add(panelPlane);
 
          saveFileItem.addActionListener(e -> {
                  JFileChooser fileChoser = new JFileChooser();
-                 fileChoser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt"));
-                 int ret = fileChoser.showDialog(null, "Сохранить файл");
-                 if (ret == JFileChooser.APPROVE_OPTION) {
-                     File file = fileChoser.getSelectedFile();
-                     if (hangar.saveData(file.getAbsolutePath())) {
-                         JOptionPane.showMessageDialog(frame, "Сохранение прошло успешно");
-                     } else {
-                         JOptionPane.showMessageDialog(frame, "Произошла ошибка");
+                 if(fileChoser.showSaveDialog(null)==JFileChooser.APPROVE_OPTION){
+                     try {
+                         File file = fileChoser.getSelectedFile();
+                         hangar.saveData(file.getPath());
+                         JOptionPane.showMessageDialog(null, "Сохранение прошло успешно!");
+                         logger.info("Сохранено в файл "+file.getPath());
+                     }catch(Exception ex){
+                         JOptionPane.showMessageDialog(null, "Не сохранилось");
+                         ex.printStackTrace();
                      }
                  }
+                 
          });
 
          loadFileItem.addActionListener(e -> {
                  JFileChooser fileChoser = new JFileChooser();
-                 fileChoser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt"));
-                 int ret = fileChoser.showDialog(null, "Открыть файл");
-                 if (ret == JFileChooser.APPROVE_OPTION) {
-                     File file = fileChoser.getSelectedFile();
-                     if (hangar.loadData(file.getAbsolutePath())) {
-                         JOptionPane.showMessageDialog(frame, "Загрузка прошло успешно");
-                         panelPlane.repaint();
-                         panelHangar.repaint();
-                     } else {
-                         JOptionPane.showMessageDialog(frame, "Произошла ошибка");
+                 if(fileChoser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION){
+                     try {
+                         File file = fileChoser.getSelectedFile();
+                         hangar.loadData(file.getPath());
+                         JOptionPane.showMessageDialog(null, "Загрузка прошла успешно!");
+                         logger.info("Загружено из файла "+ file.getPath());
+                     }catch(Exception ex){
+                         JOptionPane.showMessageDialog(null, "Не загрузилось");
+                         ex.printStackTrace();
                      }
                  }
          });
@@ -142,7 +159,8 @@ import java.io.*;
 
 
 
-         JButton buttonTakePlane = new JButton("Çàáðàòü ñàìîë¸ò");
+         JButton buttonTakePlane = new JButton("Забрать самолёт");
+         buttonTakePlane.setBounds(10, 109, 156, 23);
          buttonTakePlane.addActionListener(new ActionListener() {
              public void actionPerformed(ActionEvent arg0) {
                  if (list.getSelectedIndex() == -1) {
@@ -163,10 +181,14 @@ import java.io.*;
                      textField.setText("Invalid input");
                      return;
                  }
-
+                 try{
                  transport = hangar.get(list.getSelectedIndex()).removeTransport(numberOfPlace);
-                 if (transport != null) {
-                     transport.setPosition(5, 5, panelTakePlane.getWidth(), panelTakePlane.getHeight());
+					if (transport != null) {
+						transport.setPosition(5, 5, buttonTakePlane.getWidth(), buttonTakePlane.getHeight());
+						logger.info("Изъят самолет " + transport.toString() + " с места " + numberOfPlace);
+					}
+                 } catch(HangarNotFoundException ex){
+                     JOptionPane.showMessageDialog(null,"Не найдено!");
                  }
 
                  panelTakePlane.setTransport(transport);
@@ -174,8 +196,10 @@ import java.io.*;
                  panelPlane.repaint();
              }
          });
-         buttonTakePlane.setBounds(20, 39, 176, 23);
+         panelTakePlane.add(buttonTakePlane);
 
+        
+         
         JButton buttonParkPlane = new JButton();
         buttonParkPlane.addActionListener(e -> {
             getPlane();

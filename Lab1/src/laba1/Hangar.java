@@ -22,9 +22,9 @@ public class Hangar<T extends IFighter> {
         return !_places.containsKey(index);
     }
 
-    public int addTransport(T transport) {
+    public int addTransport(T transport) throws HangarOverflowException {
         if (_places.size() == _maxCount) {
-            return -1;
+        	throw new HangarOverflowException();
         }
         for (int i = 0; i < _maxCount; i++) {
             if (checkFreePlace(i)) {
@@ -37,13 +37,13 @@ public class Hangar<T extends IFighter> {
         return -1;
     }
 
-    public T removeTransport(int index) {
+    public T removeTransport(int index) throws HangarNotFoundException {
         if (!checkFreePlace(index)) {
             T pl = _places.get(index);
             _places.remove(index);
             return pl;
         }
-        return null;
+        throw new HangarNotFoundException(index);
     }
 
     public void Draw(Graphics g) {
@@ -69,17 +69,18 @@ public class Hangar<T extends IFighter> {
             g.drawLine(i * _placeSizeWidth, 0, i * _placeSizeWidth, 400);
         }
     }
-    public T getTrasport(int ind) {
+    public T getTrasport(int ind) throws HangarNotFoundException{
         if (_places.containsKey(ind)) {
             return _places.get(ind);
         }
-        return null;
-    }
+        else throw new HangarNotFoundException(ind);   
+        }
 
-    public void setTrasport(int ind, T t) {
+    public void setTrasport(int ind, T t) throws HangarOccupiedPlaceException {
         if (checkFreePlace(ind)) {
             _places.put(ind, t);
             _places.get(ind).setPosition(10 + ind / 5 * _placeSizeWidth + 5, ind % 5 * _placeSizeHeight + 15, _pictureWidth, _pictureHeight);
         }
+        else throw new HangarOccupiedPlaceException(ind);
     }
 }
