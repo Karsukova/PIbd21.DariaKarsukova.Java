@@ -1,6 +1,8 @@
 package laba1;
 import java.util.*;
 import java.io.*;
+import java.io.FileNotFoundException;
+
 import java.awt.*;
 public class MultiLevelHangar {
         ArrayList<Hangar<IFighter>> hangarStages;
@@ -23,7 +25,7 @@ public class MultiLevelHangar {
             }
             return null;
         }
-    public boolean saveData(String filename) {
+    public void saveData(String filename) throws HangarNotFoundException {
         File file = new File(filename);
         if (file.exists()) {
             file.delete();
@@ -45,18 +47,17 @@ public class MultiLevelHangar {
                     }
                 }
             }
-            return true;
+            
         } catch (Exception ex) {
             System.out.println(ex);
-            return false;
         }
     }
 
-    public boolean loadData(String filename) {
+    public void loadData(String filename) throws Exception{
         File file = new File(filename);
         if (!file.exists()) {
-            return false;
-        }
+        	 throw new FileNotFoundException();
+        	 }
         String bufferTextFromFile = "";
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
@@ -72,8 +73,7 @@ public class MultiLevelHangar {
                 }
                 hangarStages = new ArrayList<Hangar<IFighter>>(count);
             } else {
-                //если нет такой записи, то это не те данные
-                return false;
+            	throw new Exception("Неверный формат файла");
             }
             int counter = -1;
             IFighter pl = null;
@@ -95,11 +95,9 @@ public class MultiLevelHangar {
                 }
                 hangarStages.get(counter).setTrasport(Integer.parseInt(strs[i].split(":")[0]), pl);
             }
-            return true;
         } catch (Exception e) {
             System.out.println(e);
         }
-        return false;
     }
 
     private void writeToFile(String text, BufferedWriter writer) {
